@@ -2,6 +2,6 @@ Django==6.0.3
 gunicorn
 whitenoise
 dj-database-url
-xhtml2pdf
 reportlab
+xhtml2pdf==0.2.11
 python-bidi==0.4.2
