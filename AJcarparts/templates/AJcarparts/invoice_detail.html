@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>חשבונית</title>
+    <style>
+        @font-face {
+            font-family: 'Assistant';
+            src: url('/static/fonts/Assistant-Regular.ttf');
+        }
+
+        body {
+            font-family: 'Assistant', Arial, sans-serif;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            background: #f4f4f4;
+            margin: 0;
+            padding: 30px;
+        }
+
+        .invoice-box {
+            max-width: 900px;
+            margin: auto;
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.08);
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+        }
+
+        .business-info h1 {
+            margin: 0 0 10px 0;
+            font-size: 34px;
+        }
+
+        .business-info p,
+        .invoice-info p,
+        .customer-info p {
+            margin: 6px 0;
+            font-size: 18px;
+        }
+
+        .section-title {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table, th, td {
+            border: 1px solid #d0d0d0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: right;
+            font-size: 17px;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+
+        .total {
+            margin-top: 25px;
+            text-align: left;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .notes {
+            margin-top: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+
+        .print-btn {
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        @media print {
+            .print-btn {
+                display: none;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .invoice-box {
+                box-shadow: none;
+                border-radius: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-box">
+        <button class="print-btn" onclick="window.print()">הדפס חשבונית</button>
+
+        <div class="top">
+            <div class="business-info">
+                <h1>AJcarparts</h1>
+                <p><strong>חשבונית</strong></p>
+                <p>טלפון עסק: 000-0000000</p>
+                <p>כתובת עסק: כאן תכתבי כתובת</p>
+            </div>
+
+            <div class="invoice-info">
+                <p><strong>מספר חשבונית:</strong> {{ order.id }}</p>
+                <p><strong>תאריך:</strong> {{ order.created_at|date:"d/m/Y" }} &nbsp;&nbsp; <strong>שעה:</strong> {{ order.created_at|date:"H:i" }}</p>
+                <p><strong>סטטוס:</strong> {{ order.get_status_display }}</p>
+            </div>
+        </div>
+
+        <div class="section-title">פרטי לקוח</div>
+        <div class="customer-info">
+            <p><strong>שם לקוח:</strong> {{ order.customer.name }}</p>
+            <p><strong>טלפון:</strong> {{ order.customer.phone }}</p>
+        </div>
+
+        <div class="section-title">פירוט מוצרים</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>מוצר</th>
+                    <th>קוד מוצר</th>
+                    <th>כמות</th>
+                    <th>מחיר ליחידה</th>
+                    <th>סה״כ</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in order.items.all %}
+                <tr>
+                    <td>{{ item.product.name }}</td>
+                    <td>{{ item.product.product_code }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.price }}</td>
+                    <td>{{ item.get_total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="total">
+            סכום כולל: {{ order.get_total }}
+        </div>
+
+        {% if order.notes %}
+        <div class="notes">
+            <strong>הערות:</strong><br>
+            {{ order.notes }}
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

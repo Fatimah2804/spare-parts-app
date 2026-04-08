@@ -1,0 +1,97 @@
+{% extends 'AJcarparts/base.html' %}
+
+{% block title %}פרטי הזמנה{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="btn-row">
+        <button class="btn btn-primary" onclick="window.print()">הדפס</button>
+    </div>
+
+    <h1 class="section-title">פרטי הזמנה</h1>
+
+    <div class="info-grid">
+        <div class="info-box">
+            <div class="label">מספר הזמנה</div>
+            <div class="value">{{ order.id }}</div>
+        </div>
+
+        <div class="info-box">
+            <div class="label">סטטוס</div>
+            <div class="value"><span class="status-badge 
+                                        {% if order.status == 'new' %}status-new
+                                        {% elif order.status == 'preparing' %}status-preparing
+                                        {% elif order.status == 'completed' %}status-completed
+                                        {% elif order.status == 'cancelled' %}status-cancelled
+                                        {% endif %}
+                                        ">
+                                        {{ order.get_status_display }}
+                                        </span></div>
+        </div>
+
+        <div class="info-box">
+            <div class="label">שם לקוח</div>
+            <div class="value">{{ order.customer.name }}</div>
+        </div>
+
+        <div class="info-box">
+            <div class="label">טלפון</div>
+            <div class="value">{{ order.customer.phone }}</div>
+        </div>
+
+        <div class="info-box">
+            <div class="label">תאריך</div>
+            <div class="value">{{ order.created_at|date:"d/m/Y" }}</div>
+        </div>
+
+        <div class="info-box">
+            <div class="label">שעה</div>
+            <div class="value">{{ order.created_at|date:"H:i" }}</div>
+        </div>
+    </div>
+
+    <h2 class="section-title">מוצרים בהזמנה</h2>
+
+    <div class="table-wrap">
+        <table>
+        <thead>
+            <tr>
+                <th>מוצר</th>
+                <th>כמות</th>
+                <th>מחיר</th>
+                <th>הנחה %</th>
+                <th>מחיר אחרי הנחה</th>
+                <th>נטו</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price|floatformat:2 }}</td>
+                <td>{{ item.discount_percent|floatformat:2 }}%</td>
+                <td>{{ item.unit_price_after_discount|floatformat:2 }}</td>
+                <td>{{ item.net_total|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    <div style="margin-top:20px;">
+        <p><strong>סה״כ בלי מע״מ:</strong> {{ order.total_without_vat|floatformat:2 }}</p>
+        <p><strong>מע״מ:</strong> {{ order.vat_amount|floatformat:2 }}</p>
+        <p><strong>סה״כ כולל מע״מ:</strong> {{ order.total_with_vat|floatformat:2 }}</p>
+    </div>
+    <div class="total-box">
+        סכום כולל: ₪ {{ order.total_with_vat |floatformat:2}}
+    </div>
+
+    {% if order.notes %}
+    <div class="notes-box">
+        <strong>הערות:</strong><br>
+        {{ order.notes }}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

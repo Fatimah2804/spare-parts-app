@@ -1,0 +1,31 @@
+{% extends 'AJcarparts/base.html' %}
+
+{% block title %}התחברות{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 420px; margin: 40px auto;">
+    <h1 class="section-title" style="text-align:center;">התחברות למערכת</h1>
+
+    {% if form.errors %}
+        <div class="notes-box" style="background:#fef2f2; color:#991b1b; border-color:#fecaca; margin-bottom:16px;">
+            שם משתמש או סיסמה שגויים
+        </div>
+    {% endif %}
+
+    <form method="post" style="display:flex; flex-direction:column; gap:14px;">
+        {% csrf_token %}
+
+        <div>
+            <label style="display:block; margin-bottom:6px;">שם משתמש</label>
+            <input type="text" name="username" class="form-control" style="width:100%; padding:12px; border:1px solid #d1d5db; border-radius:10px;">
+        </div>
+
+        <div>
+            <label style="display:block; margin-bottom:6px;">סיסמה</label>
+            <input type="password" name="password" class="form-control" style="width:100%; padding:12px; border:1px solid #d1d5db; border-radius:10px;">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%;">התחבר</button>
+    </form>
+</div>
+{% endblock %}

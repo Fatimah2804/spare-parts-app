@@ -1,0 +1,230 @@
+{% extends 'AJcarparts/base.html' %}
+
+{% block title %}הזמנה חדשה{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 1100px; margin: 0 auto;">
+    <h1 class="section-title">יצירת הזמנה חדשה</h1>
+
+    {% if error %}
+    <div class="notes-box" style="border-color:#fecaca; background:#fef2f2; color:#991b1b; margin-bottom:16px;">
+        {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" id="order-form">
+        {% csrf_token %}
+
+        <!--  בחירת לקוח -->
+        <div class="notes-box" style="margin-bottom:20px;">
+            <h3 style="margin-top:0; margin-bottom:14px;"> בחירת לקוח</h3>
+            <div class="info-box">
+                <div class="label">לקוח</div>
+                <select name="customer" id="customer-select" style="width:100%; padding:12px; border-radius:10px;">
+                    <option value="">-- בחרי לקוח --</option>
+                    {% for customer in customers %}
+                        <option value="{{ customer.id }}">{{ customer.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <!-- שלב 2: הוספת פריטים -->
+        <div class="notes-box" style="margin-bottom:20px;">
+            <h3 style="margin-top:0; margin-bottom:14px;"> הוספת מוצרים להזמנה</h3>
+
+            <div class="info-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
+                <div class="info-box">
+                    <div class="label">מוצר</div>
+                    <select id="product-select" style="width:100%; padding:12px; border-radius:10px;">
+                        <option value="">-- בחרי מוצר --</option>
+                        {% for product in products %}
+                            <option value="{{ product.id }}" data-price="{{ product.price }}">
+                                {{ product.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="info-box">
+                    <div class="label">כמות</div>
+                    <input id="quantity-input" type="number" value="1" min="1" style="width:100%; padding:12px; border-radius:10px;">
+                </div>
+
+                <div class="info-box">
+                    <div class="label">אחוז הנחה</div>
+                    <input id="discount-input" type="number" value="0" min="0" max="100" step="0.01" style="width:100%; padding:12px; border-radius:10px;">
+                </div>
+
+                <div class="info-box" style="display:flex; align-items:flex-end;">
+                    <button type="button" class="btn btn-primary" id="add-item-btn" style="width:100%;">
+                        הוסף להזמנה
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" name="items" id="items-input">
+
+        <!-- שלב 3: פריטים שנוספו -->
+        <div class="notes-box" style="margin-bottom:20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+                <h3 style="margin:0;"> מוצרים בהזמנה</h3>
+                <div class="total-box">
+                    סה״כ הזמנה: ₪ <span id="order-total">0.00</span>
+                </div>
+            </div>
+
+            <div id="empty-items-message" style="padding:14px; border:1px dashed #cbd5e1; border-radius:10px; color:#64748b;">
+                עדיין לא נוספו מוצרים להזמנה.
+            </div>
+
+            <div class="table-wrap" id="items-table-wrap" style="display:none;">
+                <table style="width:100%; margin-top:10px;">
+                    <thead>
+                        <tr>
+                            <th>מוצר</th>
+                            <th>כמות</th>
+                            <th>מחיר יחידה</th>
+                            <th>הנחה %</th>
+                            <th>סה״כ לפריט</th>
+                            <th>פעולה</th>
+                        </tr>
+                    </thead>
+                    <tbody id="items-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- כפתורי סיום -->
+        <div class="btn-row" style="display:flex; gap:12px; flex-wrap:wrap;">
+            <button type="submit" class="btn btn-primary">שמור הזמנה</button>
+            <button type="submit" class="btn btn-light" name="finish_order" value="1">סיים הזמנה</button>
+        </div>
+    </form>
+</div>
+
+<script>
+let items = [];
+
+function renderTable() {
+    const table = document.getElementById("items-table");
+    const hiddenInput = document.getElementById("items-input");
+    const totalBox = document.getElementById("order-total");
+    const emptyMessage = document.getElementById("empty-items-message");
+    const tableWrap = document.getElementById("items-table-wrap");
+
+    table.innerHTML = "";
+
+    let total = 0;
+
+    if (items.length === 0) {
+        emptyMessage.style.display = "block";
+        tableWrap.style.display = "none";
+    } else {
+        emptyMessage.style.display = "none";
+        tableWrap.style.display = "block";
+    }
+
+    items.forEach((item, index) => {
+        const discountPercent = Number(item.discount_percent) || 0;
+        const subtotal = Number(item.price) * Number(item.quantity);
+        const discountAmount = subtotal * (discountPercent / 100);
+        const finalTotal = subtotal - discountAmount;
+
+        total += finalTotal;
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${item.name}</td>
+            <td>${item.quantity}</td>
+            <td>₪ ${Number(item.price).toFixed(2)}</td>
+            <td>${discountPercent.toFixed(2)}%</td>
+            <td>₪ ${finalTotal.toFixed(2)}</td>
+            <td>
+                <button type="button" onclick="removeItem(${index})" style="padding:6px 10px; border:none; border-radius:8px; cursor:pointer; background:#fee2e2; color:#991b1b;">
+                    מחק
+                </button>
+            </td>
+        `;
+        table.appendChild(row);
+    });
+
+    totalBox.textContent = total.toFixed(2);
+    hiddenInput.value = JSON.stringify(items);
+}
+
+function addItem() {
+    const customerSelect = document.getElementById("customer-select");
+    const productSelect = document.getElementById("product-select");
+    const quantityInput = document.getElementById("quantity-input");
+    const discountInput = document.getElementById("discount-input");
+
+    const customerId = customerSelect.value;
+    const productId = productSelect.value;
+
+    if (!customerId) {
+        alert("יש לבחור לקוח לפני הוספת מוצר");
+        return;
+    }
+
+    if (!productId) {
+        alert("יש לבחור מוצר");
+        return;
+    }
+
+    const productText = productSelect.options[productSelect.selectedIndex].text.trim();
+    const productPrice = parseFloat(productSelect.options[productSelect.selectedIndex].dataset.price || 0);
+    const quantity = parseInt(quantityInput.value);
+    const discountPercent = parseFloat(discountInput.value) || 0;
+
+    if (!quantity || quantity < 1) {
+        alert("יש להזין כמות תקינה");
+        return;
+    }
+
+    if (discountPercent < 0 || discountPercent > 100) {
+        alert("יש להזין אחוז הנחה בין 0 ל-100");
+        return;
+    }
+
+    items.push({
+        product_id: productId,
+        name: productText,
+        quantity: quantity,
+        price: productPrice,
+        discount_percent: discountPercent
+    });
+
+    renderTable();
+
+    productSelect.value = "";
+    quantityInput.value = 1;
+    discountInput.value = 0;
+}
+
+function removeItem(index) {
+    items.splice(index, 1);
+    renderTable();
+}
+
+document.getElementById("add-item-btn").addEventListener("click", addItem);
+
+document.getElementById("order-form").addEventListener("submit", function(e) {
+    const customerId = document.getElementById("customer-select").value;
+
+    if (!customerId) {
+        e.preventDefault();
+        alert("יש לבחור לקוח");
+        return;
+    }
+
+    if (items.length === 0) {
+        e.preventDefault();
+        alert("יש להוסיף לפחות מוצר אחד להזמנה");
+    }
+});
+
+renderTable();
+</script>
+{% endblock %}

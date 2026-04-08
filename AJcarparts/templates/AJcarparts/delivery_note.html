@@ -1,0 +1,97 @@
+{% extends 'AJcarparts/base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="btn-row" style="margin-bottom:20px;">
+    <button class="btn btn-primary" onclick="window.print()">הדפס</button>
+    </div>
+    <!-- כותרת עליונה -->
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+
+        <!-- פרטי העסק -->
+        <div style="text-align:right;">
+            <h2 style="margin:0;">חלקי חילוף אבו גואד</h2>
+            <div>כפר מנדא 17907 ת.ד 1490</div>
+            <div>נייד: 052-4542117</div>
+            <div>עוסק מורשה מס' 059456491</div>
+        </div>
+
+        <!-- לוגו -->
+        <div>
+            <img src="/static/logo.jpeg" style="height:150px;">
+        </div>
+
+    </div>
+
+    <hr>
+
+    <!-- פרטי לקוח + תאריך -->
+    <div style="display:flex; justify-content:space-between; margin-top:20px;">
+
+        <!-- ימין - לקוח -->
+        <div style="text-align:right;">
+            <div><strong>לכבוד:</strong> {{ order.customer.name }}</div>
+            <div><strong>ע.מ / ח.פ:</strong> {{ order.customer.tax_number|default:"" }}</div>
+            <div><strong>כתובת:</strong> {{ order.customer.address|default:"" }}</div>
+            <div><strong>טלפון:</strong> {{ order.customer.phone }}</div>
+        </div>
+
+        <!-- שמאל - תאריך -->
+        <div style="text-align:left;">
+            <div><strong>תאריך:</strong> {{ order.created_at|date:"d/m/Y" }}</div>
+            <div><strong>שעה:</strong> {{ order.created_at|date:"H:i" }}</div>
+        </div>
+
+    </div>
+
+    <!-- כותרת -->
+    <div style="text-align:center; margin-top:30px;">
+        <h1>תעודת משלוח מס'</h1>
+        <h2>{{ order.id }}</h2>
+    </div>
+
+    <!-- טבלה -->
+    <table style="width:100%; margin-top:30px; border-collapse:collapse;">
+        <thead>
+            <tr style="background:#f3f4f6;">
+                <th>#</th>
+                <th>קוד פריט</th>
+                <th>מוצר</th>
+                <th>כמות</th>
+                <th>מחיר לצרכן</th>
+                <th>הנחה %</th>
+                <th>מחיר נטו</th>
+                <th>סה"כ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ item.product.product_code }}</td>
+                <td>{{ item.product.name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.price|floatformat:2 }}</td>
+                <td>{{ item.discount_percent|floatformat:2 }}%</td>
+                <td>{{ item.unit_price_after_discount|floatformat:2 }}</td>
+                <td>{{ item.net_total|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div style="margin-top:20px;">
+        <p><strong>סה״כ בלי מע״מ:</strong> {{ order.total_without_vat|floatformat:2 }}</p>
+        <p><strong>מע״מ:</strong> {{ order.vat_amount|floatformat:2 }}</p>
+        <p><strong>סה״כ כולל מע״מ:</strong> {{ order.total_with_vat|floatformat:2 }}</p>
+    </div>
+    <div class="total-box">
+        סכום כולל: ₪ {{ order.total_with_vat |floatformat:2  }}
+    </div>
+
+    <!-- מספר הזמנה -->
+    <div style="margin-top:20px;">
+        <strong>מס' הזמנה:</strong> {{ order.id }}
+    </div>
+
+</div>
+{% endblock %}
