@@ -5,3 +5,4 @@ dj-database-url
 reportlab
 xhtml2pdf==0.2.11
 python-bidi==0.4.2
+psycopg2-binary
